@@ -1,0 +1,42 @@
+.d-flex.justify-content-between.align-items-center.mb-4
+  h1.mb-0
+    i.bi.bi-people.me-2
+    | Clientes
+  = link_to new_cliente_path, class: "btn btn-primary" do
+    i.bi.bi-plus-lg.me-1
+    | Nuevo Cliente
+
+.card.shadow-sm
+  .card-body.p-0
+    table.table.table-hover.mb-0
+      thead.table-dark
+        tr
+          th Nombre
+          th Correo
+          th Teléfono
+          th Órdenes
+          th.col-2 Acciones
+      tbody
+        - if @clientes.any?
+          - @clientes.each do |cliente|
+            tr
+              td = link_to cliente.nombre, cliente, class: "text-decoration-none fw-medium"
+              td = cliente.correo
+              td = cliente.telefono
+              td
+                span.badge.bg-info.text-dark = cliente.ordenes.kept.count
+              td
+                .btn-group.btn-group-sm
+                  = link_to cliente, class: "btn btn-outline-secondary" do
+                    i.bi.bi-eye
+                  = link_to edit_cliente_path(cliente), class: "btn btn-outline-primary" do
+                    i.bi.bi-pencil
+                  = button_to archivar_cliente_path(cliente), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "¿Archivar este cliente?" } do
+                    i.bi.bi-archive
+        - else
+          tr
+            td.text-center.text-muted.py-4 colspan="5" No hay clientes registrados.
+
+- if @clientes.any?
+  .d-flex.justify-content-center.mt-3
+    = paginate @clientes

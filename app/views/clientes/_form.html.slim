@@ -1,0 +1,28 @@
+= form_with model: @cliente, local: true, class: "row g-3" do |f|
+  - if @cliente.errors.any?
+    .alert.alert-danger
+      h6 = "#{@cliente.errors.count} error(es) impidieron guardar:"
+      ul.mb-0
+        - @cliente.errors.full_messages.each do |msg|
+          li = msg
+
+  .col-md-6
+    .form-floating
+      = f.text_field :nombre, class: "form-control", placeholder: "Nombre completo", required: true
+      = f.label :nombre
+
+  .col-md-6
+    .form-floating
+      = f.email_field :correo, class: "form-control", placeholder: "correo@ejemplo.com", required: true
+      = f.label :correo
+
+  .col-md-6
+    .form-floating
+      = f.telephone_field :telefono, class: "form-control", placeholder: "+56 9 1234 5678", required: true
+      = f.label :telefono
+
+  .col-12
+    hr
+    .d-flex.gap-2
+      = f.submit class: "btn btn-primary px-4"
+      = link_to "Cancelar", @cliente.persisted? ? @cliente : clientes_path, class: "btn btn-outline-secondary"

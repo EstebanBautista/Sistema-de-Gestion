@@ -1,0 +1,65 @@
+.d-flex.justify-content-between.align-items-center.mb-4
+  h1.mb-0
+    i.bi.bi-person.me-2
+    = @cliente.nombre
+  .btn-group
+    = link_to edit_cliente_path(@cliente), class: "btn btn-outline-primary" do
+      i.bi.bi-pencil.me-1
+      | Editar
+    = button_to archivar_cliente_path(@cliente), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "¿Archivar este cliente?" } do
+      i.bi.bi-archive.me-1
+      | Archivar
+    = link_to clientes_path, class: "btn btn-outline-secondary" do
+      i.bi.bi-arrow-left.me-1
+      | Volver
+
+.row.g-4.mb-4
+  .col-md-4
+    .card.shadow-sm.h-100
+      .card-body
+        h6.card-subtitle.mb-2.text-muted Correo
+        p.card-text.fs-5.mb-0 = @cliente.correo
+  .col-md-4
+    .card.shadow-sm.h-100
+      .card-body
+        h6.card-subtitle.mb-2.text-muted Teléfono
+        p.card-text.fs-5.mb-0 = @cliente.telefono
+  .col-md-4
+    .card.shadow-sm.h-100
+      .card-body
+        h6.card-subtitle.mb-2.text-muted Órdenes Activas
+        p.card-text.fs-5.mb-0 = @ordenes.count
+
+h3.mb-3
+  i.bi.bi-list-task.me-2
+  | Órdenes de Servicio
+
+.card.shadow-sm
+  .card-body.p-0
+    table.table.table-hover.mb-0
+      thead.table-dark
+        tr
+          th Folio
+          th Título
+          th Estado
+          th Creada
+          th Acciones
+      tbody
+        - if @ordenes.any?
+          - @ordenes.each do |orden|
+            tr
+              td = link_to orden.folio, orden, class: "text-decoration-none fw-medium"
+              td = orden.titulo
+              td = badge_estado(orden)
+              td = l(orden.created_at, format: :short)
+              td
+                .btn-group.btn-group-sm
+                  = link_to orden, class: "btn btn-outline-secondary" do
+                    i.bi.bi-eye
+        - else
+          tr
+            td.text-center.text-muted.py-4 colspan="5" Este cliente no tiene órdenes registradas.
+
+= link_to new_orden_path(cliente_id: @cliente), class: "btn btn-primary mt-3" do
+  i.bi.bi-plus-lg.me-1
+  | Nueva Orden

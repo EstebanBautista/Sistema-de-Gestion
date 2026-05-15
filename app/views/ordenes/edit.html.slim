@@ -1,0 +1,11 @@
+.d-flex.justify-content-between.align-items-center.mb-4
+  h1.mb-0
+    i.bi.bi-pencil-square.me-2
+    | Editar Orden
+  = link_to @orden, class: "btn btn-outline-secondary" do
+    i.bi.bi-arrow-left.me-1
+    | Volver
+
+.card.shadow-sm
+  .card-body
+    = render "form"

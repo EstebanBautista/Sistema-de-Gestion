@@ -1,0 +1,23 @@
+default: &default
+  adapter: mysql2
+  encoding: utf8mb4
+  collation: utf8mb4_unicode_ci
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: 127.0.0.1
+  port: 3306
+  username: user
+  password: dnacodex123
+
+development:
+  <<: *default
+  database: sistema_ordenes_development
+
+test:
+  <<: *default
+  database: sistema_ordenes_test
+
+production:
+  <<: *default
+  database: sistema_ordenes_production
+  username: <%= ENV.fetch("DB_USERNAME", "user") %>
+  password: <%= ENV["DB_PASSWORD"] %>

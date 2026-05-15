@@ -1,0 +1,28 @@
+= form_with model: @orden, local: true, class: "row g-3" do |f|
+  - if @orden.errors.any?
+    .alert.alert-danger
+      h6 = "#{@orden.errors.count} error(es) impidieron guardar:"
+      ul.mb-0
+        - @orden.errors.full_messages.each do |msg|
+          li = msg
+
+  .col-md-6
+    .form-floating
+      = f.text_field :titulo, class: "form-control", placeholder: "Título de la orden", required: true
+      = f.label :titulo
+
+  .col-md-6
+    .form-floating
+      = f.select :cliente_id, options_from_collection_for_select(Cliente.kept.order(:nombre), :id, :nombre, @orden.cliente_id), { prompt: "Seleccione un cliente" }, class: "form-select", required: true
+      = f.label :cliente_id, "Cliente"
+
+  .col-12
+    .form-floating
+      = f.text_area :descripcion, class: "form-control", placeholder: "Descripción del servicio", style: "height: 150px;", required: true
+      = f.label :descripcion
+
+  .col-12
+    hr
+    .d-flex.gap-2
+      = f.submit class: "btn btn-primary px-4"
+      = link_to "Cancelar", @orden.persisted? ? @orden : ordenes_path, class: "btn btn-outline-secondary"

@@ -1,0 +1,50 @@
+.d-flex.justify-content-between.align-items-center.mb-4
+  h1.mb-0
+    i.bi.bi-file-text.me-2
+    = @orden.folio
+  .btn-group
+    = link_to edit_orden_path(@orden), class: "btn btn-outline-primary" do
+      i.bi.bi-pencil.me-1
+      | Editar
+    = button_to archivar_orden_path(@orden), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "¿Archivar esta orden?" } do
+      i.bi.bi-archive.me-1
+      | Archivar
+    = link_to descargar_pdf_orden_path(@orden), class: "btn btn-outline-success" do
+      i.bi.bi-file-pdf.me-1
+      | Descargar PDF
+    = link_to ordenes_path, class: "btn btn-outline-secondary" do
+      i.bi.bi-arrow-left.me-1
+      | Volver
+
+.row.g-4.mb-4
+  .col-md-8
+    .card.shadow-sm.h-100
+      .card-body
+        h5.card-title = @orden.titulo
+        h6.card-subtitle.mb-3.text-muted
+          = badge_estado(@orden)
+        p.card-text = @orden.descripcion
+  .col-md-4
+    .card.shadow-sm.h-100
+      .card-body
+        h6.card-subtitle.mb-2.text-muted Cliente
+        p.card-text.fs-5.mb-1
+          = link_to @orden.cliente.nombre, @orden.cliente, class: "text-decoration-none"
+        p.card-text.mb-1
+          i.bi.bi-envelope.me-1
+          = @orden.cliente.correo
+        p.card-text.mb-0
+          i.bi.bi-telephone.me-1
+          = @orden.cliente.telefono
+
+h3.mb-3 Cambiar Estado
+
+.card.shadow-sm
+  .card-body
+    .d-flex.gap-2.flex-wrap
+      - Orden.estados.keys.each do |estado|
+        = button_to cambiar_estado_orden_path(@orden, estado: estado), method: :patch, class: "btn #{'btn-success' if @orden.estado == estado} #{'btn-outline-secondary' if @orden.estado != estado}" do
+          = estado.humanize
+      = link_to descargar_pdf_orden_path(@orden), class: "btn btn-outline-success ms-auto" do
+        i.bi.bi-file-pdf.me-1
+        | Descargar PDF
