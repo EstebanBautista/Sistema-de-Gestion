@@ -2,6 +2,14 @@
 
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  echo "[DEBUG] Railway env vars check:"
+  echo "  RAILS_ENV present? ${RAILS_ENV:+yes}"
+  echo "  SECRET_KEY_BASE present? ${SECRET_KEY_BASE:+yes}"
+  echo "  RAILS_MASTER_KEY present? ${RAILS_MASTER_KEY:+yes}"
+  echo "  DB_HOST present? ${DB_HOST:+yes}"
+  echo "  DB_DATABASE present? ${DB_DATABASE:+yes}"
+  echo "  DB_USERNAME present? ${DB_USERNAME:+yes}"
+  echo "  DB_PASSWORD present? ${DB_PASSWORD:+yes}"
   ./bin/rails db:prepare
 fi
 
