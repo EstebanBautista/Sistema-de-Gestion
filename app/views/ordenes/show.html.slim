@@ -2,13 +2,29 @@
   h1.mb-0
     i.bi.bi-file-text.me-2
     = @orden.folio
-  .btn-group
-    = link_to edit_orden_path(@orden), class: "btn btn-outline-primary" do
-      i.bi.bi-pencil.me-1
-      | Editar
-    = button_to archivar_orden_path(@orden), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "¿Archivar esta orden?" } do
-      i.bi.bi-archive.me-1
-      | Archivar
+  .d-flex.gap-2
+    - if @orden.deleted_at.present?
+      span.badge.bg-secondary.fs-6
+        i.bi.bi-archive.me-1
+        | Archivada
+      = link_to "#", class: "btn btn-outline-success",
+        data: { bs_toggle: "modal", bs_target: "#confirmModal",
+                url: desarchivar_orden_path(@orden),
+                method: "patch",
+                message: "¿Estás seguro de restaurar la orden #{@orden.folio}?" } do
+        i.bi.bi-arrow-counterclockwise.me-1
+        | Restaurar
+    - else
+      = link_to edit_orden_path(@orden), class: "btn btn-outline-primary" do
+        i.bi.bi-pencil.me-1
+        | Editar
+      = link_to "#", class: "btn btn-outline-danger",
+        data: { bs_toggle: "modal", bs_target: "#confirmModal",
+                url: archivar_orden_path(@orden),
+                method: "patch",
+                message: "¿Estás seguro de archivar la orden #{@orden.folio}?" } do
+        i.bi.bi-archive.me-1
+        | Archivar
     = link_to descargar_pdf_orden_path(@orden), class: "btn btn-outline-success" do
       i.bi.bi-file-pdf.me-1
       | Descargar PDF
@@ -37,14 +53,15 @@
           i.bi.bi-telephone.me-1
           = @orden.cliente.telefono
 
-h3.mb-3 Cambiar Estado
+- unless @orden.deleted_at.present?
+  h3.mb-3 Cambiar Estado
 
-.card.shadow-sm
-  .card-body
-    .d-flex.gap-2.flex-wrap
-      - Orden.estados.keys.each do |estado|
-        = button_to cambiar_estado_orden_path(@orden, estado: estado), method: :patch, class: "btn #{'btn-success' if @orden.estado == estado} #{'btn-outline-secondary' if @orden.estado != estado}" do
-          = estado.humanize
-      = link_to descargar_pdf_orden_path(@orden), class: "btn btn-outline-success ms-auto" do
-        i.bi.bi-file-pdf.me-1
-        | Descargar PDF
+  .card.shadow-sm
+    .card-body
+      .d-flex.gap-2.flex-wrap
+        - Orden.estados.keys.each do |estado|
+          = button_to cambiar_estado_orden_path(@orden, estado: estado), method: :patch, class: "btn #{'btn-success' if @orden.estado == estado} #{'btn-outline-secondary' if @orden.estado != estado}" do
+            = estado.humanize
+        = link_to descargar_pdf_orden_path(@orden), class: "btn btn-outline-success ms-auto" do
+          i.bi.bi-file-pdf.me-1
+          | Descargar PDF

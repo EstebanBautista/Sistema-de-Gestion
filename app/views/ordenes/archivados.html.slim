@@ -1,0 +1,66 @@
+.d-flex.justify-content-between.align-items-center.mb-4
+  h1.mb-0
+    i.bi.bi-archive.me-2
+    | Órdenes Archivadas
+  = link_to ordenes_path, class: "btn btn-outline-secondary" do
+    i.bi.bi-arrow-left.me-1
+    | Órdenes Activas
+
+.card.shadow-sm.mb-4
+  .card-body.py-3
+    = form_with url: archivados_ordenes_path, method: :get, local: true, class: "row g-2 align-items-end" do |f|
+      .col-md-3
+        = f.label :fecha_desde, "Archivado desde:", class: "form-label small mb-1"
+        = f.date_field :fecha_desde, value: params[:fecha_desde], class: "form-control form-control-sm"
+      .col-md-3
+        = f.label :fecha_hasta, "Archivado hasta:", class: "form-label small mb-1"
+        = f.date_field :fecha_hasta, value: params[:fecha_hasta], class: "form-control form-control-sm"
+      .col-md-auto
+        = f.submit "Filtrar", class: "btn btn-sm btn-outline-primary"
+        - if params[:fecha_desde].present? || params[:fecha_hasta].present?
+          = link_to archivados_ordenes_path, class: "btn btn-sm btn-outline-secondary ms-1" do
+            i.bi.bi-x-lg
+
+.card.shadow-sm
+  .card-body.p-0
+    table.table.table-hover.mb-0
+      thead.table-dark
+        tr
+          th Folio
+          th Título
+          th Cliente
+          th Estado
+          th Archivado el
+          th.col-2 Acciones
+      tbody
+        - if @ordenes.any?
+          - @ordenes.each do |orden|
+            tr
+              td.fw-bold.text-primary = link_to orden.folio, orden, class: "text-decoration-none"
+              td = orden.titulo
+              td = link_to orden.cliente.nombre, orden.cliente, class: "text-decoration-none"
+              td = badge_estado(orden)
+              td
+                span.badge.bg-secondary
+                  i.bi.bi-clock.me-1
+                  = l(orden.deleted_at, format: :short)
+              td
+                .d-flex.gap-1
+                  = link_to orden, class: "btn btn-outline-secondary btn-sm" do
+                    i.bi.bi-eye
+                  = link_to descargar_pdf_orden_path(orden), class: "btn btn-outline-info btn-sm" do
+                    i.bi.bi-file-pdf
+                  = link_to "#", class: "btn btn-outline-success btn-sm",
+                    data: { bs_toggle: "modal", bs_target: "#confirmModal",
+                            url: desarchivar_orden_path(orden),
+                            method: "patch",
+                            message: "¿Estás seguro de restaurar la orden #{orden.folio}?" } do
+                    i.bi.bi-arrow-counterclockwise.me-1
+                    | Restaurar
+        - else
+          tr
+            td.text-center.text-muted.py-4 colspan="6" No hay órdenes archivadas.
+
+- if @ordenes.any?
+  .d-flex.justify-content-center.mt-3
+    = paginate @ordenes

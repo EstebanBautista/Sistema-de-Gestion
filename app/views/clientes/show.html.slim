@@ -2,13 +2,29 @@
   h1.mb-0
     i.bi.bi-person.me-2
     = @cliente.nombre
-  .btn-group
-    = link_to edit_cliente_path(@cliente), class: "btn btn-outline-primary" do
-      i.bi.bi-pencil.me-1
-      | Editar
-    = button_to archivar_cliente_path(@cliente), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "¿Archivar este cliente?" } do
-      i.bi.bi-archive.me-1
-      | Archivar
+  .d-flex.gap-2
+    - if @cliente.deleted_at.present?
+      span.badge.bg-secondary.fs-6
+        i.bi.bi-archive.me-1
+        | Archivado
+      = link_to "#", class: "btn btn-outline-success",
+        data: { bs_toggle: "modal", bs_target: "#confirmModal",
+                url: desarchivar_cliente_path(@cliente),
+                method: "patch",
+                message: "¿Estás seguro de restaurar a #{@cliente.nombre}?" } do
+        i.bi.bi-arrow-counterclockwise.me-1
+        | Restaurar
+    - else
+      = link_to edit_cliente_path(@cliente), class: "btn btn-outline-primary" do
+        i.bi.bi-pencil.me-1
+        | Editar
+      = link_to "#", class: "btn btn-outline-danger",
+        data: { bs_toggle: "modal", bs_target: "#confirmModal",
+                url: archivar_cliente_path(@cliente),
+                method: "patch",
+                message: "¿Estás seguro de archivar a #{@cliente.nombre}?" } do
+        i.bi.bi-archive.me-1
+        | Archivar
     = link_to clientes_path, class: "btn btn-outline-secondary" do
       i.bi.bi-arrow-left.me-1
       | Volver
@@ -30,36 +46,37 @@
         h6.card-subtitle.mb-2.text-muted Órdenes Activas
         p.card-text.fs-5.mb-0 = @ordenes.count
 
-h3.mb-3
-  i.bi.bi-list-task.me-2
-  | Órdenes de Servicio
+- unless @cliente.deleted_at.present?
+  h3.mb-3
+    i.bi.bi-list-task.me-2
+    | Órdenes de Servicio
 
-.card.shadow-sm
-  .card-body.p-0
-    table.table.table-hover.mb-0
-      thead.table-dark
-        tr
-          th Folio
-          th Título
-          th Estado
-          th Creada
-          th Acciones
-      tbody
-        - if @ordenes.any?
-          - @ordenes.each do |orden|
-            tr
-              td = link_to orden.folio, orden, class: "text-decoration-none fw-medium"
-              td = orden.titulo
-              td = badge_estado(orden)
-              td = l(orden.created_at, format: :short)
-              td
-                .btn-group.btn-group-sm
-                  = link_to orden, class: "btn btn-outline-secondary" do
-                    i.bi.bi-eye
-        - else
+  .card.shadow-sm
+    .card-body.p-0
+      table.table.table-hover.mb-0
+        thead.table-dark
           tr
-            td.text-center.text-muted.py-4 colspan="5" Este cliente no tiene órdenes registradas.
+            th Folio
+            th Título
+            th Estado
+            th Creada
+            th Acciones
+        tbody
+          - if @ordenes.any?
+            - @ordenes.each do |orden|
+              tr
+                td = link_to orden.folio, orden, class: "text-decoration-none fw-medium"
+                td = orden.titulo
+                td = badge_estado(orden)
+                td = l(orden.created_at, format: :short)
+                td
+                  .d-flex.gap-1
+                    = link_to orden, class: "btn btn-outline-secondary btn-sm" do
+                      i.bi.bi-eye
+          - else
+            tr
+              td.text-center.text-muted.py-4 colspan="5" Este cliente no tiene órdenes registradas.
 
-= link_to new_orden_path(cliente_id: @cliente), class: "btn btn-primary mt-3" do
-  i.bi.bi-plus-lg.me-1
-  | Nueva Orden
+  = link_to new_orden_path(cliente_id: @cliente), class: "btn btn-primary mt-3" do
+    i.bi.bi-plus-lg.me-1
+    | Nueva Orden

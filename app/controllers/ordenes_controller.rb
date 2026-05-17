@@ -1,18 +1,54 @@
 class OrdenesController < ApplicationController
-  before_action :buscar_orden, only: [:show, :edit, :update, :destroy, :archivar, :cambiar_estado, :descargar_pdf]
+  before_action :buscar_orden, only: [:show, :edit, :update, :archivar, :desarchivar, :cambiar_estado, :descargar_pdf]
 
   # Autor: Esteban Muñoz
-  # Qué hace: Lista todas las órdenes activas con filtro opcional por estado y paginación
-  # Recibe: params[:estado] opcional para filtrar, params[:page] para paginación
-  # Retorna: colección de órdenes paginada con cliente incluido
+  # Qué hace: Lista todas las órdenes activas con filtros y paginación
+  # Recibe: params[:page], params[:estado], params[:q], params[:cliente_id], params[:fecha_desde], params[:fecha_hasta]
+  # Retorna: colección de órdenes paginada y filtrada con cliente incluido
   def index
     @ordenes = Orden.kept.includes(:cliente).order(created_at: :desc)
+
     @ordenes = @ordenes.where(estado: Orden.estados[params[:estado]]) if params[:estado].present?
+
+    if params[:q].present?
+      @ordenes = @ordenes.where("folio LIKE :q OR titulo LIKE :q", q: "%#{params[:q]}%")
+    end
+
+    if params[:cliente_id].present?
+      @ordenes = @ordenes.where(cliente_id: params[:cliente_id])
+    end
+
+    if params[:fecha_desde].present?
+      @ordenes = @ordenes.where("ordenes.created_at >= ?", params[:fecha_desde].to_date.beginning_of_day)
+    end
+
+    if params[:fecha_hasta].present?
+      @ordenes = @ordenes.where("ordenes.created_at <= ?", params[:fecha_hasta].to_date.end_of_day)
+    end
+
     @ordenes = @ordenes.page(params[:page]).per(15)
   end
 
   # Autor: Esteban Muñoz
-  # Qué hace: Muestra el detalle de una orden
+  # Qué hace: Lista todas las órdenes archivadas (soft-deleted) con filtro por fecha
+  # Recibe: params[:page], params[:fecha_desde], params[:fecha_hasta]
+  # Retorna: colección de órdenes archivadas paginada con cliente incluido
+  def archivados
+    @ordenes = Orden.with_discarded.where.not(deleted_at: nil).includes(:cliente).order(deleted_at: :desc)
+
+    if params[:fecha_desde].present?
+      @ordenes = @ordenes.where("ordenes.deleted_at >= ?", params[:fecha_desde].to_date.beginning_of_day)
+    end
+
+    if params[:fecha_hasta].present?
+      @ordenes = @ordenes.where("ordenes.deleted_at <= ?", params[:fecha_hasta].to_date.end_of_day)
+    end
+
+    @ordenes = @ordenes.page(params[:page]).per(15)
+  end
+
+  # Autor: Esteban Muñoz
+  # Qué hace: Muestra el detalle de una orden (incluso archivadas)
   # Recibe: params[:id]
   # Retorna: instancia @orden
   def show
@@ -76,6 +112,15 @@ class OrdenesController < ApplicationController
   end
 
   # Autor: Esteban Muñoz
+  # Qué hace: Restaura una orden archivada limpiando deleted_at
+  # Recibe: params[:id]
+  # Retorna: redirige al listado de archivados con confirmación
+  def desarchivar
+    @orden.undiscard
+    redirect_to archivados_ordenes_path, notice: "Orden restaurada correctamente."
+  end
+
+  # Autor: Esteban Muñoz
   # Qué hace: Cambia el estado de una orden (pendiente, en_progreso, completada)
   # Recibe: params[:id] y params[:estado] con el nuevo estado
   # Retorna: redirige a la misma página con confirmación
@@ -104,11 +149,15 @@ class OrdenesController < ApplicationController
   private
 
   # Autor: Esteban Muñoz
-  # Qué hace: Busca la orden por id usando el scope kept
+  # Qué hace: Busca la orden por id (incluye archivados para show/desarchivar)
   # Recibe: params[:id]
   # Retorna: asigna @orden o lanza RecordNotFound
   def buscar_orden
-    @orden = Orden.kept.includes(:cliente).find(params[:id])
+    if action_name == "show" || action_name == "desarchivar" || action_name == "cambiar_estado" || action_name == "descargar_pdf"
+      @orden = Orden.with_discarded.includes(:cliente).find(params[:id])
+    else
+      @orden = Orden.kept.includes(:cliente).find(params[:id])
+    end
   end
 
   # Autor: Esteban Muñoz

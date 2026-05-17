@@ -6,6 +6,27 @@
     i.bi.bi-plus-lg.me-1
     | Nuevo Cliente
 
+.card.shadow-sm.mb-4
+  .card-body.py-3
+    = form_with url: clientes_path, method: :get, local: true, class: "row g-2 align-items-end" do |f|
+      .col-md-3
+        = f.label :q, "Buscar:", class: "form-label small mb-1"
+        = f.text_field :q, value: params[:q], class: "form-control form-control-sm", placeholder: "Nombre o correo..."
+      .col-md-2
+        = f.label :letra, "Letra inicial:", class: "form-label small mb-1"
+        = f.select :letra, options_for_select([["Todas", ""]] + ("A".."Z").map { |l| [l, l] }, params[:letra]), {}, class: "form-select form-select-sm"
+      .col-md-2
+        = f.label :fecha_desde, "Desde:", class: "form-label small mb-1"
+        = f.date_field :fecha_desde, value: params[:fecha_desde], class: "form-control form-control-sm"
+      .col-md-2
+        = f.label :fecha_hasta, "Hasta:", class: "form-label small mb-1"
+        = f.date_field :fecha_hasta, value: params[:fecha_hasta], class: "form-control form-control-sm"
+      .col-md-auto
+        = f.submit "Filtrar", class: "btn btn-sm btn-outline-primary mt-3"
+        - if params[:q].present? || params[:letra].present? || params[:fecha_desde].present? || params[:fecha_hasta].present?
+          = link_to clientes_path, class: "btn btn-sm btn-outline-secondary ms-1 mt-3" do
+            i.bi.bi-x-lg
+
 .card.shadow-sm
   .card-body.p-0
     table.table.table-hover.mb-0
@@ -26,12 +47,16 @@
               td
                 span.badge.bg-info.text-dark = cliente.ordenes.kept.count
               td
-                .btn-group.btn-group-sm
-                  = link_to cliente, class: "btn btn-outline-secondary" do
+                .d-flex.gap-1
+                  = link_to cliente, class: "btn btn-outline-secondary btn-sm" do
                     i.bi.bi-eye
-                  = link_to edit_cliente_path(cliente), class: "btn btn-outline-primary" do
+                  = link_to edit_cliente_path(cliente), class: "btn btn-outline-primary btn-sm" do
                     i.bi.bi-pencil
-                  = button_to archivar_cliente_path(cliente), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "¿Archivar este cliente?" } do
+                  = link_to "#", class: "btn btn-outline-danger btn-sm",
+                    data: { bs_toggle: "modal", bs_target: "#confirmModal",
+                            url: archivar_cliente_path(cliente),
+                            method: "patch",
+                            message: "¿Estás seguro de archivar a #{cliente.nombre}?" } do
                     i.bi.bi-archive
         - else
           tr

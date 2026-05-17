@@ -1,16 +1,52 @@
 class ClientesController < ApplicationController
-  before_action :buscar_cliente, only: [:show, :edit, :update, :destroy, :archivar]
+  before_action :buscar_cliente, only: [:show, :edit, :update, :archivar, :desarchivar]
 
   # Autor: Esteban Muñoz
-  # Qué hace: Lista todos los clientes activos con paginación
-  # Recibe: params[:page] opcional para la página actual
-  # Retorna: colección de clientes paginada
+  # Qué hace: Lista todos los clientes activos con filtros y paginación
+  # Recibe: params[:page], params[:q], params[:letra], params[:fecha_desde], params[:fecha_hasta]
+  # Retorna: colección de clientes paginada y filtrada
   def index
-    @clientes = Cliente.kept.order(created_at: :desc).page(params[:page]).per(15)
+    @clientes = Cliente.kept.order(created_at: :desc)
+
+    if params[:q].present?
+      @clientes = @clientes.where("nombre LIKE :q OR correo LIKE :q", q: "%#{params[:q]}%")
+    end
+
+    if params[:letra].present?
+      @clientes = @clientes.where("nombre LIKE :letra", letra: "#{params[:letra]}%")
+    end
+
+    if params[:fecha_desde].present?
+      @clientes = @clientes.where("created_at >= ?", params[:fecha_desde].to_date.beginning_of_day)
+    end
+
+    if params[:fecha_hasta].present?
+      @clientes = @clientes.where("created_at <= ?", params[:fecha_hasta].to_date.end_of_day)
+    end
+
+    @clientes = @clientes.page(params[:page]).per(15)
   end
 
   # Autor: Esteban Muñoz
-  # Qué hace: Muestra el detalle de un cliente y sus órdenes activas
+  # Qué hace: Lista todos los clientes archivados (soft-deleted) con filtro por fecha
+  # Recibe: params[:page], params[:fecha_desde], params[:fecha_hasta]
+  # Retorna: colección de clientes archivados paginada
+  def archivados
+    @clientes = Cliente.with_discarded.where.not(deleted_at: nil).order(deleted_at: :desc)
+
+    if params[:fecha_desde].present?
+      @clientes = @clientes.where("deleted_at >= ?", params[:fecha_desde].to_date.beginning_of_day)
+    end
+
+    if params[:fecha_hasta].present?
+      @clientes = @clientes.where("deleted_at <= ?", params[:fecha_hasta].to_date.end_of_day)
+    end
+
+    @clientes = @clientes.page(params[:page]).per(15)
+  end
+
+  # Autor: Esteban Muñoz
+  # Qué hace: Muestra el detalle de un cliente (incluso archivados) y sus órdenes activas
   # Recibe: params[:id] con el id del cliente
   # Retorna: instancia @cliente y colección @ordenes
   def show
@@ -74,14 +110,27 @@ class ClientesController < ApplicationController
     redirect_to clientes_path, notice: "Cliente archivado correctamente."
   end
 
+  # Autor: Esteban Muñoz
+  # Qué hace: Restaura un cliente archivado limpiando deleted_at
+  # Recibe: params[:id]
+  # Retorna: redirige al listado de archivados con confirmación
+  def desarchivar
+    @cliente.undiscard
+    redirect_to archivados_clientes_path, notice: "Cliente restaurado correctamente."
+  end
+
   private
 
   # Autor: Esteban Muñoz
-  # Qué hace: Busca el cliente por id usando el scope kept (solo activos)
+  # Qué hace: Busca el cliente por id (incluye archivados para show, solo activos para edición)
   # Recibe: params[:id]
   # Retorna: asigna @cliente o lanza RecordNotFound
   def buscar_cliente
-    @cliente = Cliente.kept.find(params[:id])
+    if action_name == "show" || action_name == "desarchivar"
+      @cliente = Cliente.with_discarded.find(params[:id])
+    else
+      @cliente = Cliente.kept.find(params[:id])
+    end
   end
 
   # Autor: Esteban Muñoz

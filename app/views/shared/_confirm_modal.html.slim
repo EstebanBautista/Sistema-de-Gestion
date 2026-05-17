@@ -1,0 +1,17 @@
+.modal.fade#confirmModal tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true"
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      .modal-header.border-0.pb-0
+        h5.modal-title#confirmModalLabel
+          i.bi.bi-exclamation-triangle.me-2.text-warning
+          | Confirmar acción
+        button.btn-close type="button" data-bs-dismiss="modal" aria-label="Cerrar"
+      .modal-body.pt-3.pb-4
+        p#confirmMessage.fs-5.mb-0
+      .modal-footer.border-0.pt-0
+        button.btn.btn-outline-secondary type="button" data-bs-dismiss="modal"
+          i.bi.bi-x-lg.me-1
+          | Cancelar
+        button.btn.btn-danger#confirmActionBtn type="button"
+          i.bi.bi-check-lg.me-1
+          | Confirmar
