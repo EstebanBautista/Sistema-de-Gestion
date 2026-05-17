@@ -54,20 +54,31 @@ La aplicación estará disponible en `http://localhost:3000`.
 
 ### Diagrama Entidad-Relación
 
-```
-+------------------+          +---------------------+
-|     clientes     |          |      ordenes        |
-+------------------+          +---------------------+
-| id (PK)          |<---------| id (PK)             |
-| nombre (string)  |  1:N     | folio (string, UNQ) |
-| correo (string)  |          | titulo (string)     |
-| telefono (string)|          | descripcion (text)  |
-| deleted_at (dt)  |          | estado (integer)    |
-| created_at (dt)  |          | cliente_id (FK)     |
-| updated_at (dt)  |          | deleted_at (dt)     |
-+------------------+          | created_at (dt)     |
-                              | updated_at (dt)     |
-                              +---------------------+
+```mermaid
+erDiagram
+    clientes {
+        bigint id PK
+        varchar nombre "NOT NULL"
+        varchar correo "NOT NULL, UNIQUE"
+        varchar telefono "NOT NULL"
+        datetime deleted_at "NULL"
+        datetime created_at "NOT NULL"
+        datetime updated_at "NOT NULL"
+    }
+
+    ordenes {
+        bigint id PK
+        varchar folio "NOT NULL, UNIQUE"
+        varchar titulo "NOT NULL"
+        text descripcion "NOT NULL"
+        int estado "NOT NULL, DEFAULT 0"
+        bigint cliente_id FK "NOT NULL"
+        datetime deleted_at "NULL"
+        datetime created_at "NOT NULL"
+        datetime updated_at "NOT NULL"
+    }
+
+    clientes ||--o{ ordenes : tiene
 ```
 
 ### Tabla: `clientes`
