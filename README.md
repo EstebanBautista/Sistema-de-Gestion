@@ -50,6 +50,67 @@ rails server
 
 La aplicación estará disponible en `http://localhost:3000`.
 
+## Esquema de Base de Datos
+
+### Diagrama Entidad-Relación
+
+```
++------------------+          +---------------------+
+|     clientes     |          |      ordenes        |
++------------------+          +---------------------+
+| id (PK)          |<---------| id (PK)             |
+| nombre (string)  |  1:N     | folio (string, UNQ) |
+| correo (string)  |          | titulo (string)     |
+| telefono (string)|          | descripcion (text)  |
+| deleted_at (dt)  |          | estado (integer)    |
+| created_at (dt)  |          | cliente_id (FK)     |
+| updated_at (dt)  |          | deleted_at (dt)     |
++------------------+          | created_at (dt)     |
+                              | updated_at (dt)     |
+                              +---------------------+
+```
+
+### Tabla: `clientes`
+
+| Columna      | Tipo       | Restricciones                |
+|-------------|------------|------------------------------|
+| id          | bigint     | PK, autoincrement            |
+| nombre      | varchar    | NOT NULL                     |
+| correo      | varchar    | NOT NULL, UNIQUE INDEX       |
+| telefono    | varchar    | NOT NULL                     |
+| deleted_at  | datetime   | NULL (nullable, INDEX)       |
+| created_at  | datetime   | NOT NULL                     |
+| updated_at  | datetime   | NOT NULL                     |
+
+### Tabla: `ordenes`
+
+| Columna      | Tipo       | Restricciones                           |
+|-------------|------------|-----------------------------------------|
+| id          | bigint     | PK, autoincrement                       |
+| folio       | varchar    | NOT NULL, UNIQUE INDEX                  |
+| titulo      | varchar    | NOT NULL                                |
+| descripcion | text       | NOT NULL                                |
+| estado      | integer    | NOT NULL, DEFAULT 0                     |
+| cliente_id  | bigint     | NOT NULL, FK → clientes(id)             |
+| deleted_at  | datetime   | NULL (nullable)                         |
+| created_at  | datetime   | NOT NULL                                |
+| updated_at  | datetime   | NOT NULL                                |
+
+**Índices adicionales:**
+- `index_ordenes_on_estado_and_deleted_at` — índice compuesto para filtrar órdenes activas por estado
+
+### Valores del Enum `estado`
+
+| Valor | Significado  |
+|-------|-------------|
+| 0     | Pendiente   |
+| 1     | En Progreso |
+| 2     | Completada  |
+
+### Soft Delete
+
+Ambas tablas usan soft delete mediante la columna `deleted_at`. Cuando un registro se "elimina", se marca la fecha/hora actual en `deleted_at` y se excluye de las consultas por defecto mediante `default_scope { kept }`.
+
 ## Estructura del Proyecto
 
 ```
@@ -80,12 +141,18 @@ app/
 | GET    | `/clientes/:id`               | Detalle del cliente     |
 | GET    | `/clientes/new`               | Nuevo cliente           |
 | GET    | `/clientes/:id/edit`          | Editar cliente          |
-| PATCH  | `/clientes/:id/archivar`      | Soft delete del cliente |
-| GET    | `/ordenes`                    | Listado de órdenes      |
-| GET    | `/ordenes/:id`                | Detalle de la orden     |
-| PATCH  | `/ordenes/:id/cambiar_estado` | Cambiar estado          |
-| GET    | `/ordenes/:id/descargar_pdf`  | Descargar PDF           |
-| PATCH  | `/ordenes/:id/archivar`       | Soft delete de la orden |
+| PATCH  | `/clientes/:id/archivar`      | Soft delete del cliente    |
+| PATCH  | `/clientes/:id/desarchivar`   | Restaurar cliente archivado|
+| GET    | `/clientes/archivados`        | Listado de clientes archivados |
+| GET    | `/ordenes`                    | Listado de órdenes         |
+| GET    | `/ordenes/:id`                | Detalle de la orden        |
+| GET    | `/ordenes/new`                | Nueva orden                |
+| GET    | `/ordenes/:id/edit`           | Editar orden               |
+| PATCH  | `/ordenes/:id/cambiar_estado` | Cambiar estado             |
+| GET    | `/ordenes/:id/descargar_pdf`  | Descargar PDF              |
+| PATCH  | `/ordenes/:id/archivar`       | Soft delete de la orden    |
+| PATCH  | `/ordenes/:id/desarchivar`    | Restaurar orden archivada  |
+| GET    | `/ordenes/archivados`         | Listado de órdenes archivadas |
 
 ## Generación de PDF
 
@@ -96,17 +163,6 @@ Para descargar el PDF de una orden, acceder a la vista de detalle de la orden y 
 - Estado actual
 - Datos del cliente (nombre, correo, teléfono)
 - Fecha de generación del documento
-
-## Soft Delete
-
-Ningún registro se elimina físicamente de la base de datos. La columna `deleted_at` se marca con la fecha y hora actual, y los scopes por defecto excluyen automáticamente los registros archivados de todas las consultas.
-
-Para ver registros archivados (en consola):
-
-```ruby
-Cliente.with_discarded.where.not(deleted_at: nil)
-Orden.with_discarded.where.not(deleted_at: nil)
-```
 
 ## Licencia
 
